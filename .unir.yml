@@ -1,0 +1,7 @@
+whitelist:
+    - seemethere
+    - corbin-coleman
+    - docker-jenkins
+    - jose-bigio
+approvals_needed: 2
+consensus_needed: true

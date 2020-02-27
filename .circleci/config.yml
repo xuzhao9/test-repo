@@ -1,0 +1,24 @@
+version: 2.1
+
+jobs:
+  run_on_branches_and_tags:
+    docker:
+      - image: circleci/python:3
+    steps:
+      - run:
+          name: This should run on both
+          command: echo "I was runnning"
+
+workflows:
+  version: 2.1
+  build_test_deploy:
+    jobs:
+      - run_on_branches_and_tags:
+          name: "Test that tags apply correctly"
+          filters:
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*-rc[0-9]+/
+            branches:
+              only:
+              - nightly
+              - master

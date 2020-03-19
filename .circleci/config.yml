@@ -20,6 +20,9 @@ workflows:
           requires:
             - simple1
       - simple_job:
+          filters:
+            tags:
+              - only: /.*/
           name: simple3
           requires:
             - simple2

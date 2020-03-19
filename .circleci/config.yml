@@ -13,8 +13,14 @@ workflows:
   build_test_deploy:
     jobs:
       - simple_job:
+          filters:
+            tags:
+              only: /.*/
           name: simple1
       - blank_job:
+          filters:
+            tags:
+              only: /.*/
           name: simple2
           type: approval
           requires:

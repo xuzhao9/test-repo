@@ -1,52 +1,67 @@
 version: 2.1
 
+parameters:
+  run_build_workflow:
+    type: boolean
+    default: false
+  run_docker_workflow:
+    type: boolean
+    default: true
+  ci_docker_tag:
+    type: string
+    default: ""
+
 jobs:
-  run_on_branches_and_tags:
-    docker:
-      - image: circleci/python:3
+  docker_build:
+    parameters:
+      image_name:
+        type: string
+        default: "seemethere/test-1"
+      dockerfile:
+        type: string
+        default: "docker/Dockerfile-1"
+    machine:
+      image: ubuntu-1604:201903-01
+    environment:
+      DOCKER_CLI_EXPERIMENTAL: enabled
     steps:
+      - checkout
       - run:
-          name: This should run on both
-          command: echo "I was runnning"
-  last_step:
-    docker:
-      - image: circleci/python:3
-    steps:
+          name: Compute docker hash
+          command: |
+            echo "export DOCKER_TAG=\"$(.circleci/scripts/calculate_docker_tag.sh)\"" >> "${BASH_ENV}"
       - run:
-          name: This should run after everything else
-          command: echo "I was runnning"
+          name: Check if docker image should be built
+          command: |
+            if docker manifest inspect "<< parameters.image_name >>:${DOCKER_TAG}"; then
+              circleci step halt
+            fi
+      - run:
+          name: Build docker image
+          command: |
+            docker build -f << parameters.dockerfile >> -t "<< parameters.image_name >>:${DOCKER_TAG}" .
+      - run:
+          name: Push docker image
+          command: |
+            echo "${DOCKER_HUB_TOKEN}" | docker login --username seemethere --password-stdin
+            docker push "<< parameters.image_name >>:${DOCKER_TAG}"
+      - run:
+          name: Trigger build workflow
+          command: |
+            echo "TODO"
 
 workflows:
   version: 2.1
-  build_test_deploy:
+  docker_builder:
+    when: << pipeline.parameters.run_docker_workflow >>
     jobs:
-      - run_on_branches_and_tags:
-          name: run_1
-          filters:
-            tags:
-              only: /v[0-9]+(\.[0-9]+)*-rc[0-9]+/
-            branches:
-              only:
-              - nightly
-              - master
-      - run_on_branches_and_tags:
-          name: run2
-          filters:
-            tags:
-              only: /v[0-9]+(\.[0-9]+)*-rc[0-9]+/
-            branches:
-              only:
-              - nightly
-              - master
-      - last_step:
-          name: last_dependency
-          filters:
-            tags:
-              only: /v[0-9]+(\.[0-9]+)*-rc[0-9]+/
-            branches:
-              only:
-              - nightly
-              - master
-          requires:
-            - run_on_branches_and_tags
-
+      - docker_build:
+          name: docker_build_test_1
+          context: me
+          image_name: seemethere/test-1
+          dockerfile: docker/Dockerfile-1
+      - docker_build:
+          name: docker_build_test_2
+          context: me
+          image_name: seemethere/test-2
+          dockerfile: docker/Dockerfile-2

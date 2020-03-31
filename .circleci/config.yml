@@ -35,6 +35,8 @@ jobs:
           name: Compute docker hash
           command: |
             echo "export DOCKER_TAG=\"$(.circleci/scripts/calculate_docker_tag.sh)\"" >> new_env_vars
+            echo "New hash is:"
+            cat new_env_vars
       - persist_to_workspace:
           root: .
           paths:

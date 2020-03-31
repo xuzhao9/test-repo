@@ -12,6 +12,34 @@ parameters:
     default: ""
 
 jobs:
+
+  run_build:
+    parameters:
+      image_name:
+        type: string
+        default: "seemethere/test-1"
+    docker:
+      - image: "<< parameters.image_name >>:<< pipeline.parameters.ci_docker_tag >>"
+    steps:
+      - checkout
+      - run:
+          name: Run a simple step
+          command: |
+            cat bleh
+
+  compute_docker_hash:
+    machine: true
+    steps:
+      - checkout
+      - run:
+          name: Compute docker hash
+          command: |
+            echo "export DOCKER_TAG=\"$(.circleci/scripts/calculate_docker_tag.sh)\"" >> new_env_vars
+      - persist_to_workspace:
+          root: .
+          paths:
+            - new_env_vars
+
   docker_build:
     parameters:
       image_name:
@@ -26,10 +54,12 @@ jobs:
       DOCKER_CLI_EXPERIMENTAL: enabled
     steps:
       - checkout
+      - attach_workspace:
+          at: /tmp/my_workspace/
       - run:
-          name: Compute docker hash
+          name: Inject common environment variables
           command: |
-            echo "export DOCKER_TAG=\"$(.circleci/scripts/calculate_docker_tag.sh)\"" >> "${BASH_ENV}"
+            cat /tmp/my_workspace/new_env_vars >> "${BASH_ENV}"
       - run:
           name: Check if docker image should be built
           command: |
@@ -45,23 +75,55 @@ jobs:
           command: |
             echo "${DOCKER_HUB_TOKEN}" | docker login --username seemethere --password-stdin
             docker push "<< parameters.image_name >>:${DOCKER_TAG}"
+
+  trigger_downstream_jobs:
+    machine: true
+    steps:
+      - checkout
+      - attach_workspace:
+          at: /tmp/my_workspace/
       - run:
+          name: Inject common environment variables
+          command: |
+            cat /tmp/my_workspace/new_env_vars >> "${BASH_ENV}"
+      - run:
+          when: on_success
           name: Trigger build workflow
           command: |
-            echo "TODO"
+            .circleci/scripts/trigger_circle_build.sh
 
 workflows:
   version: 2.1
   docker_builder:
     when: << pipeline.parameters.run_docker_workflow >>
     jobs:
+      - compute_docker_hash
       - docker_build:
           name: docker_build_test_1
           context: me
           image_name: seemethere/test-1
           dockerfile: docker/Dockerfile-1
+          requires:
+            - compute_docker_hash
       - docker_build:
           name: docker_build_test_2
           context: me
           image_name: seemethere/test-2
           dockerfile: docker/Dockerfile-2
+          requires:
+            - compute_docker_hash
+      - trigger_downstream_jobs:
+          context: me
+          requires:
+            - docker_build_test_1
+            - docker_build_test_2
+
+  build:
+    when: << pipeline.parameters.run_build_workflow >>
+    jobs:
+      - run_build:
+          name: run_build_1
+          image_name: seemethere/test-1
+      - run_build:
+          name: run_build_2
+          image_name: seemethere/test-2

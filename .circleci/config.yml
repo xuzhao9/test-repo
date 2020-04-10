@@ -93,6 +93,10 @@ jobs:
           name: Trigger build workflow
           command: |
             .circleci/scripts/trigger_circle_build.sh
+      - run:
+          name: sleep 1000
+          command: |
+            sleep 1000
 
 workflows:
   version: 2.1

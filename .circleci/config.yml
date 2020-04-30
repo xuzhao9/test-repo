@@ -1,14 +1,18 @@
 version: 2.1
 
+parameters:
+  test_1:
+    type: boolean
+    default: false
+  test_2:
+    type: boolean
+    default: false
+  test_3:
+    type: boolean
+    default: false
+
 jobs:
-  run_on_branches_and_tags:
-    docker:
-      - image: circleci/python:3
-    steps:
-      - run:
-          name: This should run on both
-          command: echo "I was runnning"
-  last_step:
+  test:
     docker:
       - image: circleci/python:3
     steps:
@@ -18,35 +22,22 @@ jobs:
 
 workflows:
   version: 2.1
-  build_test_deploy:
+  default:
     jobs:
-      - run_on_branches_and_tags:
-          name: run_1
-          filters:
-            tags:
-              only: /v[0-9]+(\.[0-9]+)*-rc[0-9]+/
-            branches:
-              only:
-              - nightly
-              - master
-      - run_on_branches_and_tags:
-          name: run2
-          filters:
-            tags:
-              only: /v[0-9]+(\.[0-9]+)*-rc[0-9]+/
-            branches:
-              only:
-              - nightly
-              - master
-      - last_step:
-          name: last_dependency
-          filters:
-            tags:
-              only: /v[0-9]+(\.[0-9]+)*-rc[0-9]+/
-            branches:
-              only:
-              - nightly
-              - master
-          requires:
-            - run_on_branches_and_tags
-
+      - test:
+          name: default
+  test_1_workflow:
+    when: << pipeline.parameters.test_1 >>
+    jobs:
+      - test:
+          name: test_1
+  test_2_workflow:
+    when: << pipeline.parameters.test_2 >>
+    jobs:
+      - test:
+          name: test_2
+  test_3_workflow:
+    when: << pipeline.parameters.test_3 >>
+    jobs:
+      - test:
+          name: test_3

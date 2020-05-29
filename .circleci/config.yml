@@ -27,9 +27,9 @@ workflows:
       - test:
           filters:
             branches:
-              only: .*
+              only: /.*/
             tags:
-              only: .*
+              only: /.*/
           name: default
   test_1_workflow:
     when: << pipeline.parameters.test_1 >>
@@ -37,9 +37,9 @@ workflows:
       - test:
           filters:
             branches:
-              only: .*
+              only: /.*/
             tags:
-              only: .*
+              only: /.*/
           name: test_1
   test_2_workflow:
     when: << pipeline.parameters.test_2 >>
@@ -47,9 +47,9 @@ workflows:
       - test:
           filters:
             branches:
-              only: .*
+              only: /.*/
             tags:
-              only: .*
+              only: /.*/
           name: test_2
   test_3_workflow:
     when: << pipeline.parameters.test_3 >>
@@ -57,7 +57,7 @@ workflows:
       - test:
           filters:
             branches:
-              only: .*
+              only: /.*/
             tags:
-              only: .*
+              only: /.*/
           name: test_3

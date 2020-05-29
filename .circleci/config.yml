@@ -25,19 +25,39 @@ workflows:
   default:
     jobs:
       - test:
+          filters:
+            branches:
+              only: .*
+            tags:
+              only: .*
           name: default
   test_1_workflow:
     when: << pipeline.parameters.test_1 >>
     jobs:
       - test:
+          filters:
+            branches:
+              only: .*
+            tags:
+              only: .*
           name: test_1
   test_2_workflow:
     when: << pipeline.parameters.test_2 >>
     jobs:
       - test:
+          filters:
+            branches:
+              only: .*
+            tags:
+              only: .*
           name: test_2
   test_3_workflow:
     when: << pipeline.parameters.test_3 >>
     jobs:
       - test:
+          filters:
+            branches:
+              only: .*
+            tags:
+              only: .*
           name: test_3

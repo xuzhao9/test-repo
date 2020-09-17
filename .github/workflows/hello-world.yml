@@ -1,0 +1,9 @@
+name: hello-world
+on: [push, pull_request]
+
+jobs:
+    say-hello:
+        runs-on: [self-hosted]
+        steps:
+            - run: echo "hello"
+            - run: cat /etc/os-release

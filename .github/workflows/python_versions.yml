@@ -1,0 +1,18 @@
+name: check python versions
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  pyversion:
+    strategy:
+      matrix:
+        python-version: [3.6, 3.7, 3.8]
+    runs-on: self-hosted
+    container: python:${{ matrix.python-version }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - run: python --version

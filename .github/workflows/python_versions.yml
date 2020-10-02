@@ -9,6 +9,7 @@ jobs:
   pyversion:
     strategy:
       matrix:
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
         python-version: [3.6, 3.7, 3.8]
     runs-on: self-hosted
     container: python:${{ matrix.python-version }}

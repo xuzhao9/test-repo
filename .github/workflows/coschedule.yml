@@ -1,0 +1,15 @@
+name: co-schedule-test
+on:
+  workflow_dispatch:
+
+jobs:
+  test1:
+    runs-on: [self-hosted]
+    steps:
+      - run: echo $(hostname) | sha256sum
+
+  test2:
+    runs-on: [self-hosted]
+    needs: test1
+    steps:
+      - run: echo $(hostname) | sha256sum
